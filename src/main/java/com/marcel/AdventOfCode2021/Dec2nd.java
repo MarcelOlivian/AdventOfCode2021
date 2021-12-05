@@ -1,5 +1,6 @@
 package com.marcel.AdventOfCode2021;
 
+import com.marcel.AdventOfCode2021.utils.FileUtils;
 import org.javatuples.Pair;
 
 import java.util.List;

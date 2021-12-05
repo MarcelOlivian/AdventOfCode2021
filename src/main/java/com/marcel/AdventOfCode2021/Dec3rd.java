@@ -1,5 +1,7 @@
 package com.marcel.AdventOfCode2021;
 
+import com.marcel.AdventOfCode2021.utils.FileUtils;
+
 import java.util.Arrays;
 
 public class Dec3rd {

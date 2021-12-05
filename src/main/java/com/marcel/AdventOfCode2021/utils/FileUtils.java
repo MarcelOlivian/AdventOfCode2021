@@ -1,4 +1,4 @@
-package com.marcel.AdventOfCode2021;
+package com.marcel.AdventOfCode2021.utils;
 
 import org.javatuples.Pair;
 
@@ -8,16 +8,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+//probably should've used a classic loop with reader.readline() approach instead of relying on ugly stream processing with side effects (the atomic variables)
+//but hey, it's a free world and this is not production code, it's for fun. So chaotic fun shall we have!
 public class FileUtils {
-
     public static Stream<String> getLinesFromFile(String resourceUri) {
         try {
             System.out.println("File path: " + ClassLoader.getSystemResource(resourceUri).toURI().getPath());
-            var inputStream = Files.lines(Paths.get(ClassLoader.getSystemResource(resourceUri).toURI()), StandardCharsets.UTF_8);
-            return inputStream;
+            return Files.lines(Paths.get(ClassLoader.getSystemResource(resourceUri).toURI()), StandardCharsets.UTF_8);
         } catch (Exception ex) {
             System.out.println("Error reading file: " + ex.getMessage());
         }
@@ -30,7 +32,7 @@ public class FileUtils {
             AtomicInteger lineNumber = new AtomicInteger(0);
             int[] data = new int[3000]; //tbd how to init this array
             inFileStream.forEach(l -> {
-                data[lineNumber.get()] = Integer.valueOf(l);
+                data[lineNumber.get()] = Integer.parseInt(l);
                 lineNumber.getAndIncrement();
             });
             return Arrays.copyOfRange(data, 0, lineNumber.get());
@@ -69,6 +71,45 @@ public class FileUtils {
             System.out.println("Couldn't process data from file: " + ex.getCause());
         }
         return new short[0];
+    }
+
+    //for 04.12 we had a line with random numbers, then a lot of 5x5 matrices of numbers ("boards)
+
+    public static Bingo getBingo(String resourceUri) {
+        try (Stream<String> inFileStream = getLinesFromFile(resourceUri)) {
+            AtomicInteger lineNumber = new AtomicInteger(0);
+            AtomicInteger boardNumber = new AtomicInteger(0);
+            AtomicInteger boardRow = new AtomicInteger(0);
+
+            Bingo bingo = new Bingo();
+            int[][][] boards = new int[200][5][5]; //enough for max 200 boards for now
+
+            inFileStream.forEach(l -> {
+                if (lineNumber.get() == 0) {
+                    bingo.setCalledNumbers(Arrays.stream(l.split(",")).map(n -> Short.parseShort(n)).collect(Collectors.toList()));
+                } else {
+                    if(l.isBlank()){
+                        if(lineNumber.get() != 1) {
+                            boardNumber.getAndIncrement();
+                            boardRow.set(0);
+                        }
+                    } else {
+                        int[] row = Arrays.stream(l.trim().split(" ")).filter(s -> !s.isBlank()).mapToInt(n -> Integer.parseInt(n.trim())).toArray();
+                        //System.out.println("Current row: " + Arrays.toString(row));
+                        boards[boardNumber.get()][boardRow.get()] = row;
+                        boardRow.getAndIncrement();
+                    }
+                }
+                lineNumber.getAndIncrement();
+            });
+            bingo.setBoards(Arrays.copyOfRange(boards, 0, boardNumber.get() + 1));
+            return bingo;
+        } catch (Exception ex) {
+            System.out.println("Couldn't process bingo data from file: " + ex.getCause());
+            ex.printStackTrace();
+        }
+
+        return null;
     }
 
     public static void main(String[] args) {

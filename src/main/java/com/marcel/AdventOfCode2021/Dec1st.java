@@ -1,7 +1,6 @@
 package com.marcel.AdventOfCode2021;
 
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
+import com.marcel.AdventOfCode2021.utils.FileUtils;
 
 public class Dec1st {
     public static void main(String[] args)  {
